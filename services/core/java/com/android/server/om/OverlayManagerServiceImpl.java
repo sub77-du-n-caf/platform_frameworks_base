@@ -45,7 +45,6 @@ class OverlayManagerServiceImpl {
     private final PackageManagerHelper mPackageManager;
     private final IdmapManager mIdmapManager;
     private final OverlayManagerDatabase mDatabase;
-    private boolean waitForRefresh = false;
 
     OverlayManagerServiceImpl(PackageManagerHelper packageManager, IdmapManager idmapManager,
             OverlayManagerDatabase database) {
@@ -91,7 +90,7 @@ class OverlayManagerServiceImpl {
                 updateState(targetPackage, overlayPackage, newUserId);
             } catch (OverlayManagerDatabase.BadKeyException e) {
                 Slog.e(TAG, "failed to update database", e);
-                mDatabase.remove(overlayPackage.packageName, newUserId, waitForRefresh);
+                mDatabase.remove(overlayPackage.packageName, newUserId);
             }
 
             packagesToUpdateAssets.add(overlayPackage.overlayTarget);
@@ -101,7 +100,7 @@ class OverlayManagerServiceImpl {
         // any OverlayInfo left in storedOverlayInfos is no longer
         // installed and should be removed
         for (OverlayInfo oi: storedOverlayInfos.values()) {
-            mDatabase.remove(oi.packageName, oi.userId, waitForRefresh);
+            mDatabase.remove(oi.packageName, oi.userId);
             removeIdmapIfPossible(oi);
             packagesToUpdateAssets.add(oi.targetPackageName);
         }
@@ -168,24 +167,20 @@ class OverlayManagerServiceImpl {
         updateAllOverlaysForTarget(packageName, userId, null);
     }
 
-    public void setWaitForRefresh(boolean wfr) {
-        this.waitForRefresh = wfr;
-    }
-
     private void updateAllOverlaysForTarget(@NonNull String packageName, int userId,
             PackageInfo targetPackage) {
         List<OverlayInfo> ois = mDatabase.getOverlaysForTarget(packageName, userId);
         for (OverlayInfo oi : ois) {
             PackageInfo overlayPackage = mPackageManager.getPackageInfo(oi.packageName, userId);
             if (overlayPackage == null) {
-                mDatabase.remove(oi.packageName, oi.userId, waitForRefresh);
+                mDatabase.remove(oi.packageName, oi.userId);
                 removeIdmapIfPossible(oi);
             } else {
                 try {
                     updateState(targetPackage, overlayPackage, userId);
                 } catch (OverlayManagerDatabase.BadKeyException e) {
                     Slog.e(TAG, "failed to update database", e);
-                    mDatabase.remove(packageName, userId, waitForRefresh);
+                    mDatabase.remove(packageName, userId);
                 }
             }
         }
@@ -207,12 +202,12 @@ class OverlayManagerServiceImpl {
             mPackageManager.getPackageInfo(overlayPackage.overlayTarget, userId);
 
         mDatabase.init(packageName, userId, overlayPackage.overlayTarget,
-                overlayPackage.applicationInfo.getBaseCodePath(), waitForRefresh);
+                overlayPackage.applicationInfo.getBaseCodePath());
         try {
             updateState(targetPackage, overlayPackage, userId);
         } catch (OverlayManagerDatabase.BadKeyException e) {
             Slog.e(TAG, "failed to update database", e);
-            mDatabase.remove(packageName, userId, waitForRefresh);
+            mDatabase.remove(packageName, userId);
         }
     }
 
@@ -235,7 +230,7 @@ class OverlayManagerServiceImpl {
             updateState(targetPackage, overlayPackage, userId);
         } catch (OverlayManagerDatabase.BadKeyException e) {
             Slog.e(TAG, "failed to update database", e);
-            mDatabase.remove(packageName, userId, waitForRefresh);
+            mDatabase.remove(packageName, userId);
         }
     }
 
@@ -246,11 +241,11 @@ class OverlayManagerServiceImpl {
 
         try {
             OverlayInfo oi = mDatabase.getOverlayInfo(packageName, userId);
-            mDatabase.setUpgrading(packageName, userId, true, waitForRefresh);
+            mDatabase.setUpgrading(packageName, userId, true);
             removeIdmapIfPossible(oi);
         } catch (OverlayManagerDatabase.BadKeyException e) {
             Slog.e(TAG, "failed to update database", e);
-            mDatabase.remove(packageName, userId, waitForRefresh);
+            mDatabase.remove(packageName, userId);
         }
     }
 
@@ -272,7 +267,7 @@ class OverlayManagerServiceImpl {
                 // Sneaky little hobbitses, changing the overlay's target package
                 // from one version to the next! We can't use the old version's
                 // state.
-                mDatabase.remove(packageName, userId, waitForRefresh);
+                mDatabase.remove(packageName, userId);
                 onOverlayPackageAdded(packageName, userId);
                 return;
             }
@@ -283,7 +278,7 @@ class OverlayManagerServiceImpl {
             updateState(targetPackage, overlayPackage, userId);
         } catch (OverlayManagerDatabase.BadKeyException e) {
             Slog.e(TAG, "failed to update database", e);
-            mDatabase.remove(packageName, userId, waitForRefresh);
+            mDatabase.remove(packageName, userId);
         }
     }
 
@@ -294,7 +289,7 @@ class OverlayManagerServiceImpl {
 
         try {
             OverlayInfo oi = mDatabase.getOverlayInfo(packageName, userId);
-            mDatabase.remove(packageName, userId, waitForRefresh);
+            mDatabase.remove(packageName, userId);
             removeIdmapIfPossible(oi);
         } catch (OverlayManagerDatabase.BadKeyException e) {
             Slog.e(TAG, "failed to remove overlay package", e);
