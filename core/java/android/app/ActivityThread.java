@@ -1878,10 +1878,10 @@ public final class ActivityThread {
      * Creates the top level resources for the given package. Will return an existing
      * Resources if one has already been created.
      */
-    Resources getTopLevelResources(String resDir, String[] splitResDirs, String[] libDirs,
-            int displayId, LoadedApk pkgInfo) {
-        return mResourcesManager.getResources(null, resDir, splitResDirs, libDirs, displayId,
-                null, pkgInfo.getCompatibilityInfo(), pkgInfo.getClassLoader());
+    Resources getTopLevelResources(String resDir, String[] splitResDirs, String[] overlayDirs,
+            String[] libDirs, int displayId, LoadedApk pkgInfo) {
+        return mResourcesManager.getResources(null, resDir, splitResDirs, overlayDirs, libDirs,
+                displayId, null, pkgInfo.getCompatibilityInfo(), pkgInfo.getClassLoader());
     }
 
     final Handler getHandler() {

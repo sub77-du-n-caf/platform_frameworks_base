@@ -96,6 +96,7 @@ public final class LoadedApk {
     private String mResDir;
     private String[] mSplitAppDirs;
     private String[] mSplitResDirs;
+    private String[] mOverlayDirs;
     private String[] mSharedLibraries;
     private String mDataDir;
     private String mLibDir;
@@ -187,6 +188,7 @@ public final class LoadedApk {
         mResDir = null;
         mSplitAppDirs = null;
         mSplitResDirs = null;
+        mOverlayDirs = null;
         mSharedLibraries = null;
         mDataDir = null;
         mDataDirFile = null;
@@ -287,7 +289,7 @@ public final class LoadedApk {
         synchronized (this) {
             createOrUpdateClassLoaderLocked(addedPaths);
             if (mResources != null) {
-                mResources = mActivityThread.getTopLevelResources(mResDir, mSplitResDirs,
+                mResources = mActivityThread.getTopLevelResources(mResDir, mSplitResDirs, mOverlayDirs,
                         mApplicationInfo.sharedLibraryFiles, Display.DEFAULT_DISPLAY, this);
             }
         }
@@ -301,6 +303,7 @@ public final class LoadedApk {
         mResDir = aInfo.uid == myUid ? aInfo.sourceDir : aInfo.publicSourceDir;
         mSplitAppDirs = aInfo.splitSourceDirs;
         mSplitResDirs = aInfo.uid == myUid ? aInfo.splitSourceDirs : aInfo.splitPublicSourceDirs;
+        mOverlayDirs = aInfo.resourceDirs;
         mSharedLibraries = aInfo.sharedLibraryFiles;
         mDataDir = aInfo.dataDir;
         mLibDir = aInfo.nativeLibraryDir;
@@ -733,6 +736,10 @@ public final class LoadedApk {
         return mSplitResDirs;
     }
 
+    public String[] getOverlayDirs() {
+        return mOverlayDirs;
+    }
+
     public String getDataDir() {
         return mDataDir;
     }
@@ -755,7 +762,7 @@ public final class LoadedApk {
 
     public Resources getResources(ActivityThread mainThread) {
         if (mResources == null) {
-            mResources = mainThread.getTopLevelResources(mResDir, mSplitResDirs,
+            mResources = mainThread.getTopLevelResources(mResDir, mSplitResDirs, mOverlayDirs,
                     mApplicationInfo.sharedLibraryFiles, Display.DEFAULT_DISPLAY, this);
         }
         return mResources;
