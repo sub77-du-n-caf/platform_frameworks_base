@@ -206,6 +206,15 @@ bool AssetManager::addAssetPath(
     const ssize_t index = mAssetPaths.add(ap, cookie);
     ap = mAssetPaths.itemAt(index); // get updated version of asset_path
 
+#ifdef __ANDROID__
+    // Load overlays, if any
+    asset_path oap;
+    for (size_t idx = 0; mZipSet.getOverlay(ap.path, idx, &oap); idx++) {
+        oap.isSystemAsset = isSystemAsset;
+        mAssetPaths.add(oap, NULL);
+    }
+#endif
+    
     if (mResources != NULL) {
         appendPathToResTable(ap, appAsLib);
     }
@@ -653,6 +662,14 @@ bool AssetManager::appendPathToResTable(const asset_path& ap, bool appAsLib) con
                 ALOGV("Creating shared resources for %s", ap.path.string());
                 sharedRes = new ResTable();
                 sharedRes->add(ass, idmap, ap.cookie, false);
+#ifdef HAVE_ANDROID_OS
+                const char* data = getenv("ANDROID_DATA");
+                LOG_ALWAYS_FATAL_IF(data == NULL, "ANDROID_DATA not set");
+                String8 overlaysListPath(data);
+                overlaysListPath.appendPath(kResourceCache);
+                overlaysListPath.appendPath("overlays.list");
+                addSystemOverlays(overlaysListPath.string(), ap.path, sharedRes);
+#endif
                 sharedRes = const_cast<AssetManager*>(this)->
                     mZipSet.setZipResourceTable(ap.path, sharedRes);
             }
@@ -1902,6 +1919,20 @@ bool AssetManager::SharedZip::isUpToDate()
     return mModWhen == modWhen;
 }
 
+void AssetManager::SharedZip::addOverlay(const asset_path& ap)
+{
+    mOverlays.add(ap);
+}
+
+bool AssetManager::SharedZip::getOverlay(size_t idx, asset_path* out) const
+{
+    if (idx >= mOverlays.size()) {
+        return false;
+    }
+    *out = mOverlays[idx];
+    return true;
+}
+
 AssetManager::SharedZip::~SharedZip()
 {
     if (kIsDebug) {
@@ -2025,6 +2056,22 @@ bool AssetManager::ZipSet::isUpToDate()
         }
     }
     return true;
+}
+
+void AssetManager::ZipSet::addOverlay(const String8& path, const asset_path& overlay)
+{
+    int idx = getIndex(path);
+    sp<SharedZip> zip = mZipFile[idx];
+    zip->addOverlay(overlay);
+}
+
+bool AssetManager::ZipSet::getOverlay(const String8& path, size_t idx, asset_path* out) const
+{
+    sp<SharedZip> zip = SharedZip::get(path, false);
+    if (zip == NULL) {
+        return false;
+    }
+    return zip->getOverlay(idx, out);
 }
 
 /*
