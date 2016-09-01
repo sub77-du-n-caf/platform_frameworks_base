@@ -274,6 +274,13 @@ public class ResourcesManager {
             }
         }
 
+        if (key.mOverlayDirs != null) {
+            for (final String idmapPath : key.mOverlayDirs) {
+                Log.e("OverlayManagement", idmapPath);
+                assets.addOverlayPath(idmapPath);
+            }
+        }
+
         if (key.mLibDirs != null) {
             for (final String libDir : key.mLibDirs) {
                 if (libDir.endsWith(".apk")) {
@@ -472,6 +479,7 @@ public class ResourcesManager {
      * @param activityToken Represents an Activity.
      * @param resDir The base resource path. Can be null (only framework resources will be loaded).
      * @param splitResDirs An array of split resource paths. Can be null.
+     * @param overlayDirs An array of overlay paths. Can be null.
      * @param libDirs An array of resource library paths. Can be null.
      * @param displayId The ID of the display for which to create the resources.
      * @param overrideConfig The configuration to apply on top of the base configuration. Can be
@@ -485,6 +493,7 @@ public class ResourcesManager {
     public @NonNull Resources createBaseActivityResources(@NonNull IBinder activityToken,
             @Nullable String resDir,
             @Nullable String[] splitResDirs,
+            @Nullable String[] overlayDirs,
             @Nullable String[] libDirs,
             int displayId,
             @Nullable Configuration overrideConfig,
@@ -496,6 +505,7 @@ public class ResourcesManager {
             final ResourcesKey key = new ResourcesKey(
                     resDir,
                     splitResDirs,
+                    overlayDirs,
                     libDirs,
                     displayId,
                     overrideConfig != null ? new Configuration(overrideConfig) : null, // Copy
@@ -630,6 +640,7 @@ public class ResourcesManager {
      * @param activityToken Represents an Activity. If null, global resources are assumed.
      * @param resDir The base resource path. Can be null (only framework resources will be loaded).
      * @param splitResDirs An array of split resource paths. Can be null.
+     * @param overlayDirs An array of overlay paths. Can be null.
      * @param libDirs An array of resource library paths. Can be null.
      * @param displayId The ID of the display for which to create the resources.
      * @param overrideConfig The configuration to apply on top of the base configuration. Can be
@@ -644,6 +655,7 @@ public class ResourcesManager {
     public @NonNull Resources getResources(@Nullable IBinder activityToken,
             @Nullable String resDir,
             @Nullable String[] splitResDirs,
+            @Nullable String[] overlayDirs,
             @Nullable String[] libDirs,
             int displayId,
             @Nullable Configuration overrideConfig,
@@ -654,6 +666,7 @@ public class ResourcesManager {
             final ResourcesKey key = new ResourcesKey(
                     resDir,
                     splitResDirs,
+                    overlayDirs,
                     libDirs,
                     displayId,
                     overrideConfig != null ? new Configuration(overrideConfig) : null, // Copy
@@ -750,7 +763,7 @@ public class ResourcesManager {
 
                     // Create the new ResourcesKey with the rebased override config.
                     final ResourcesKey newKey = new ResourcesKey(oldKey.mResDir,
-                            oldKey.mSplitResDirs, oldKey.mLibDirs, oldKey.mDisplayId,
+                            oldKey.mSplitResDirs, oldKey.mOverlayDirs, oldKey.mLibDirs, oldKey.mDisplayId,
                             rebasedOverrideConfig, oldKey.mCompatInfo);
 
                     if (DEBUG) {
@@ -885,6 +898,7 @@ public class ResourcesManager {
                         updatedResourceKeys.put(impl, new ResourcesKey(
                                 key.mResDir,
                                 key.mSplitResDirs,
+                                key.mOverlayDirs,
                                 newLibAssets,
                                 key.mDisplayId,
                                 key.mOverrideConfiguration,

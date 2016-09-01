@@ -27,12 +27,14 @@ import android.annotation.NonNull;
 import android.app.ActivityManager;
 import android.app.ActivityManagerNative;
 import android.app.IActivityManager;
+import android.app.ResourcesManager;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.om.IOverlayManager;
 import android.content.om.OverlayInfo;
+import android.content.pm.ApplicationInfo;
 import android.content.pm.IPackageManager;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
@@ -194,6 +196,8 @@ public class OverlayManagerService extends SystemService {
 
     static final boolean DEBUG = true;
 
+    private Context mContext;
+
     private final Object mLock = new Object();
 
     private final AtomicFile mSettingsFile;
@@ -210,6 +214,7 @@ public class OverlayManagerService extends SystemService {
 
     public OverlayManagerService(Context context, Installer installer) {
         super(context);
+        mContext = context;
         mSettingsFile =
             new AtomicFile(new File(Environment.getDataSystemDirectory(), "overlays.xml"));
         mPackageManager = new PackageManagerHelper();
@@ -277,6 +282,20 @@ public class OverlayManagerService extends SystemService {
                 out.add(paths);
             }
             return out;
+        }
+    }
+
+    public void appendAssetPaths(String packageName, int userId) {
+        try {
+            ApplicationInfo appInfo = getPackageManager().getApplicationInfo(packageName, 0, userId);
+            if (appInfo.resourceDirs != null) {
+                Slog.d(TAG, packageName + " : " + appInfo.resourceDirs.length);
+            }
+            appInfo.resourceDirs = getAllAssetPaths(packageName, userId).get(1);
+            Slog.d(TAG, "Successfully binded asset paths to package: " + packageName);
+        } catch (Exception e) {
+            e.printStackTrace();
+            Slog.e(TAG, "An error has occurred trying to append asset paths to package: " + packageName);
         }
     }
 
@@ -651,6 +670,7 @@ public class OverlayManagerService extends SystemService {
             public void run() {
                 if (mDoUpdate && !shouldWait) {
                     updateAssets(mOverlayInfo.userId, mOverlayInfo.targetPackageName);
+                    appendAssetPaths(mOverlayInfo.targetPackageName, mOverlayInfo.userId);
                 }
                 sendBroadcast(mAction, mOverlayInfo.packageName, mOverlayInfo.userId);
             }
