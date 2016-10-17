@@ -668,6 +668,7 @@ public final class Configuration implements Parcelable, Comparable<Configuration
      * @hide Internal book-keeping of asset changes. Used to determine if any assets have changed.
      */
     public int assetSeq;
+    private Boolean shouldRefresh;
 
     /**
      * @hide Internal book-keeping.
@@ -1231,9 +1232,25 @@ public final class Configuration implements Parcelable, Comparable<Configuration
      */
     public static boolean needNewResources(@Config int configChanges,
             @Config int interestingChanges) {
-        return (configChanges & (interestingChanges|ActivityInfo.CONFIG_FONT_SCALE|
-                    ActivityInfo.CONFIG_ASSETS|
-                    ActivityInfo.CONFIG_THEME_FONT)) != 0;
+        if (shouldRefresh) {
+            shouldRefresh = false;
+            return (configChanges & (interestingChanges|ActivityInfo.CONFIG_FONT_SCALE|
+                        ActivityInfo.CONFIG_ASSETS|
+                        ActivityInfo.CONFIG_THEME_FONT)) != 0;
+        } else {
+            return false;
+        }
+    }
+    
+    /**
+     * @hide Allow for reflection to enable or disable the configuration changes to
+     * the boolean above needNewResources(Configuration).
+     */
+    public static void triggerUpdateResources() {
+        shouldRefresh = true;
+    }
+    public static void disableUpdateResources() {
+        shouldRefresh = false;    
     }
 
     /**
