@@ -167,6 +167,9 @@
     <!-- the ability to rename notifications posted by other apps -->
     <uses-permission android:name="android.permission.SUBSTITUTE_NOTIFICATION_APP_NAME" />
 
+    <!-- shortcut manager -->
+    <uses-permission android:name="android.permission.RESET_SHORTCUT_MANAGER_THROTTLING" />
+
     <!-- Sync tile -->
     <uses-permission android:name="android.permission.READ_SYNC_SETTINGS" />
     <uses-permission android:name="android.permission.WRITE_SYNC_SETTINGS" />
@@ -262,14 +265,6 @@
                   android:icon="@drawable/tuner"
                   android:theme="@style/TunerSettings"
                   android:label="@string/systemui_tuner_statusbar_title"
-                  android:parentActivityName="com.dirtyunicorns.dutweaks.DirtyTweaks"
-                  android:process=":tuner"
-                  android:exported="true">
-        </activity>
-
-        <activity android:name=".tuner.NightModeActivity"
-                  android:theme="@style/TunerSettings"
-                  android:label="@string/systemui_tuner_nightmode_title"
                   android:parentActivityName="com.dirtyunicorns.dutweaks.DirtyTweaks"
                   android:process=":tuner"
                   android:exported="true">
@@ -419,7 +414,7 @@
             android:theme="@style/PipTheme"
             android:launchMode="singleTop"
             android:taskAffinity=""
-            android:configChanges="screenSize|smallestScreenSize|screenLayout|orientation"
+            android:configChanges="screenSize|smallestScreenSize|screenLayout|orientation|locale|layoutDirection"
             android:resizeableActivity="true"
             android:supportsPictureInPicture="true"
             androidprv:alwaysFocusable="true"
@@ -429,7 +424,7 @@
             android:exported="true"
             android:theme="@style/PipTheme"
             android:taskAffinity=""
-            android:configChanges="screenSize|smallestScreenSize|screenLayout|orientation"
+            android:configChanges="screenSize|smallestScreenSize|screenLayout|orientation|locale|layoutDirection"
             android:resizeableActivity="true"
             android:supportsPictureInPicture="true"
             android:excludeFromRecents="true" />
