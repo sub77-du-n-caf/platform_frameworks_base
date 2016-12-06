@@ -50,13 +50,11 @@ static const char* kPathWhitelist[] = {
   "/dev/null",
   "/dev/socket/zygote",
   "/dev/socket/zygote_secondary",
-  "/system/etc/event-log-tags",
   "/sys/kernel/debug/tracing/trace_marker",
   "/system/framework/framework-res.apk",
   "/dev/urandom",
   "/dev/ion",
   "/dev/dri/renderD129", // Fixes b/31172436
-  "/data/adb/socket_haploid32_root",
 };
 
 static const char* kFdPath = "/proc/self/fd";
@@ -256,26 +254,6 @@ class FileDescriptorInfo {
     if (path.compare(0, kFrameworksPrefix.size(), kFrameworksPrefix) == 0 &&
         path.compare(path.size() - kJarSuffix.size(), kJarSuffix.size(), kJarSuffix) == 0) {
       return true;
-    }
-
-    static const std::string kResourceCachePrefix = "/data/resource-cache/";
-    static const std::string kIdmapSuffix = "idmap";
-    if (path.compare(0, kResourceCachePrefix.size(), kResourceCachePrefix) == 0 &&
-        path.compare(path.size() - kIdmapSuffix.size(), kIdmapSuffix.size(), kIdmapSuffix) == 0) {
-        return true;
-    }
-
-    static const std::string kSystemVendorOverlayPrefix = "/system/vendor/overlay/";
-    static const std::string kApkSuffix = ".apk";
-    if (path.compare(0, kSystemVendorOverlayPrefix.size(), kSystemVendorOverlayPrefix) == 0 &&
-        path.compare(path.size() - kApkSuffix.size(), kApkSuffix.size(), kApkSuffix) == 0) {
-        return true;
-    }
-
-    static const std::string kVendorOverlayPrefix = "/vendor/overlay/";
-    if (path.compare(0, kVendorOverlayPrefix.size(), kVendorOverlayPrefix) == 0 &&
-        path.compare(path.size() - kApkSuffix.size(), kApkSuffix.size(), kApkSuffix) == 0) {
-        return true;
     }
     return false;
   }
